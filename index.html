@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Parenting - Menjadi Sahabat Anak di Era Digital (SDN Daan Mogot 3)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#0284c7',
+                        accent: '#f59e0b',
+                        gameBg: '#0f172a',
+                        cardBg: '#1e293b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        game: ['Fredoka', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            user-select: none;
+        }
+        .font-game {
+            font-family: 'Fredoka', cursive, sans-serif;
+        }
+        .card-interactive {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-interactive:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        }
+        .option-card {
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Print CSS for Certificate A4 Portrait */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            body { 
+                background: white !important; 
+                color: #0f172a !important; 
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .no-print { display: none !important; }
+            #screen-certificate {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .cert-card {
+                border: 6px double #b45309 !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+                box-shadow: none !important;
+                page-break-inside: avoid;
+                padding: 24px 20px !important;
+                border-radius: 16px !important;
+                max-width: 100% !important;
+            }
+            .cert-card h1, .cert-card .font-game {
+                color: #b45309 !important;
+            }
+            input#cert-family-input {
+                border-bottom: 2px solid #b45309 !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-slate-50 text-slate-800">
+
+    <header class="no-print bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 px-4 py-3 shadow-sm">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <!-- Logo & School Badge -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showMapScreen()">
+                <div class="w-11 h-11 bg-gradient-to-tr from-blue-600 to-amber-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-md font-bold">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <span class="text-[10px] md:text-xs text-amber-600 font-bold tracking-wider uppercase block">SD NEGERI DAAN MOGOT 3</span>
+                    <h1 class="font-game text-lg md:text-xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-amber-600 bg-clip-text text-transparent">
+                        Sahabat Digital Quest
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Player Dashboard -->
+            <div class="flex items-center space-x-3 bg-slate-100/90 px-3 py-1.5 rounded-2xl border border-slate-200 text-xs md:text-sm">
+                <div class="text-center px-1">
+                    <span class="text-[10px] text-slate-500 block uppercase font-semibold">Gelar</span>
+                    <span id="player-title" class="font-game text-amber-700 font-bold">Orang Tua Pembelajar</span>
+                </div>
+                <div class="h-6 w-px bg-slate-300"></div>
+                <div class="flex items-center space-x-1.5 px-1">
+                    <i class="fa-solid fa-gem text-amber-500 text-base animate-bounce"></i>
+                    <div>
+                        <span class="text-[10px] text-slate-500 block uppercase font-semibold">Total XP</span>
+                        <span id="player-xp" class="font-game text-emerald-600 font-bold">0</span>
+                    </div>
+                </div>
+                <div class="h-6 w-px bg-slate-300"></div>
+                <button onclick="toggleFullscreen()" title="Layar Penuh" class="text-slate-500 hover:text-blue-600 p-1.5 transition-colors">
+                    <i id="fullscreen-icon" class="fa-solid fa-expand"></i>
+                </button>
+                <button onclick="confirmResetProgress()" title="Reset Progress" class="text-slate-500 hover:text-rose-600 p-1.5 transition-colors">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-5xl w-full mx-auto p-4 md:p-6">
+
+        <!-- SCREEN 0: MAP / LEVEL SELECTOR -->
+        <section id="screen-map" class="space-y-6">
+            <!-- Banner -->
+            <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 rounded-3xl p-6 md:p-8 text-center relative overflow-hidden shadow-xl text-white">
+                <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl text-white">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <span class="px-3 py-1 bg-amber-400 text-slate-900 font-bold rounded-full text-xs uppercase tracking-widest inline-block mb-3 shadow-sm">
+                    Game Parenting Interaktif
+                </span>
+                <h2 class="font-game text-2xl md:text-4xl font-bold mb-2">
+                    Menjadi Sahabat Anak di Era Digital
+                </h2>
+                <p class="text-blue-100 max-w-2xl mx-auto text-xs md:text-sm leading-relaxed">
+                    Selesaikan 5 Misi Quest Parenting untuk mengumpulkan strategi pendampingan gawai, meraih XP, dan mengklaim <strong class="text-amber-300">Piagam Komitmen Sahabat Digital</strong>!
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                
+                <!-- LEVEL 1 CARD -->
+                <div id="card-level-1" class="bg-white border border-slate-200 shadow-sm rounded-3xl p-5 card-interactive flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="w-10 h-10 bg-blue-100 text-blue-700 rounded-2xl flex items-center justify-center font-bold font-game text-lg">1</span>
+                            <span id="badge-level-1" class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-semibold">Belum Selesai</span>
+                        </div>
+                        <h3 class="font-game text-lg font-bold text-slate-800 mb-1">Segitiga Sinergi</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Pahami 5 peran kolaborasi antara Orang Tua, Guru, dan Anak dalam era digital.</p>
+                    </div>
+                    <button onclick="startLevel(1)" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-game font-bold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-sm">
+                        <span>Mulai Misi 1</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- LEVEL 2 CARD -->
+                <div id="card-level-2" class="bg-white border border-slate-200 shadow-sm rounded-3xl p-5 card-interactive flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="w-10 h-10 bg-indigo-100 text-indigo-700 rounded-2xl flex items-center justify-center font-bold font-game text-lg">2</span>
+                            <span id="badge-level-2" class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-semibold">Belum Selesai</span>
+                        </div>
+                        <h3 class="font-game text-lg font-bold text-slate-800 mb-1">Detektif Bertumbuh Anak</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Pilah 5 perkembangan karakter dan kebutuhan emosional utama anak.</p>
+                    </div>
+                    <button onclick="startLevel(2)" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-game font-bold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-sm">
+                        <span>Mulai Misi 2</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- LEVEL 3 CARD -->
+                <div id="card-level-3" class="bg-white border border-slate-200 shadow-sm rounded-3xl p-5 card-interactive flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center font-bold font-game text-lg">3</span>
+                            <span id="badge-level-3" class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-semibold">Belum Selesai</span>
+                        </div>
+                        <h3 class="font-game text-lg font-bold text-slate-800 mb-1">Lab Gawai & Jurus 4P</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Cocokkan 5 aksi nyata gawai dengan Jurus Dampingi, Pantau, Arahkan, Batasi.</p>
+                    </div>
+                    <button onclick="startLevel(3)" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-game font-bold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-sm">
+                        <span>Mulai Misi 3</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- LEVEL 4 CARD -->
+                <div id="card-level-4" class="bg-white border border-slate-200 shadow-sm rounded-3xl p-5 card-interactive flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="w-10 h-10 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center font-bold font-game text-lg">4</span>
+                            <span id="badge-level-4" class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-semibold">Belum Selesai</span>
+                        </div>
+                        <h3 class="font-game text-lg font-bold text-slate-800 mb-1">Simulator Obrolan Empati</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Latih 5 respons mendengar aktif dan komunikasi positif dengan anak.</p>
+                    </div>
+                    <button onclick="startLevel(4)" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-game font-bold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-sm">
+                        <span>Mulai Misi 4</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- LEVEL 5 CARD -->
+                <div id="card-level-5" class="bg-white border border-slate-200 shadow-sm rounded-3xl p-5 card-interactive flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="w-10 h-10 bg-rose-100 text-rose-700 rounded-2xl flex items-center justify-center font-bold font-game text-lg">5</span>
+                            <span id="badge-level-5" class="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-semibold">Belum Selesai</span>
+                        </div>
+                        <h3 class="font-game text-lg font-bold text-slate-800 mb-1">Benteng Cyberbullying & 10 Menit</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed mb-4">Kuasai 5 langkah alur STOP-SIMPAN-BLOKIR-CERITA dan kebiasaan obrolan harian.</p>
+                    </div>
+                    <button onclick="startLevel(5)" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-game font-bold rounded-xl transition-all flex items-center justify-center space-x-2 shadow-sm">
+                        <span>Mulai Misi 5</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- CERTIFICATE CARD -->
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-300 shadow-sm rounded-3xl p-5 card-interactive flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="w-10 h-10 bg-amber-200 text-amber-800 rounded-2xl flex items-center justify-center font-bold text-lg"><i class="fa-solid fa-award"></i></span>
+                            <span id="badge-certificate" class="px-3 py-1 bg-amber-200/80 text-amber-900 rounded-full text-xs font-semibold">Terkunci 🔒</span>
+                        </div>
+                        <h3 class="font-game text-lg font-bold text-amber-900 mb-1">Piagam Komitmen Keluarga</h3>
+                        <p class="text-xs text-amber-800/80 leading-relaxed mb-4">Klaim dan cetak Piagam Sahabat Digital SD Negeri Daan Mogot 3.</p>
+                    </div>
+                    <button id="btn-certificate" onclick="showCertificateScreen()" class="w-full py-2.5 bg-slate-300 hover:bg-slate-400 text-slate-700 font-game font-bold rounded-xl transition-all shadow-sm flex items-center justify-center space-x-2">
+                        <span>Klaim Piagam</span>
+                        <i class="fa-solid fa-certificate text-xs"></i>
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SCREEN: LEVEL 1 -->
+        <section id="screen-level-1" class="hidden space-y-6">
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="showMapScreen()" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div>
+                            <span class="text-xs text-blue-600 font-bold uppercase tracking-wider">Misi 1</span>
+                            <h2 class="font-game text-xl font-bold text-slate-800">Segitiga Sinergi Keberhasilan Belajar</h2>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold">Maksimal +100 XP</span>
+                </div>
+
+                <p class="text-xs md:text-sm text-slate-600 mb-6">
+                    Klik kartu jawaban untuk menentukan peran dan tanggung jawab yang tepat untuk masing-masing pilar sinergi pendidikan di bawah ini!
+                </p>
+
+                <div id="l1-container" class="space-y-5"></div>
+
+                <div class="mt-6">
+                    <button onclick="submitLevel(1)" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-game font-bold rounded-xl shadow-md transition-all">
+                        Selesaikan Misi 1
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN: LEVEL 2 -->
+        <section id="screen-level-2" class="hidden space-y-6">
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="showMapScreen()" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div>
+                            <span class="text-xs text-indigo-600 font-bold uppercase tracking-wider">Misi 2</span>
+                            <h2 class="font-game text-xl font-bold text-slate-800">Detektif Bertumbuh Anak</h2>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-semibold">Maksimal +100 XP</span>
+                </div>
+
+                <p class="text-xs md:text-sm text-slate-600 mb-6">
+                    Klik pilihan Anda untuk mengklasifikasikan setiap pernyataan apakah merupakan <strong class="text-indigo-600">Perkembangan Karakter</strong> atau <strong class="text-amber-600">Kebutuhan Utama Anak</strong>.
+                </p>
+
+                <div id="l2-container" class="grid grid-cols-1 md:grid-cols-2 gap-5"></div>
+
+                <div class="mt-6">
+                    <button onclick="submitLevel(2)" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-game font-bold rounded-xl shadow-md transition-all">
+                        Selesaikan Misi 2
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN: LEVEL 3 -->
+        <section id="screen-level-3" class="hidden space-y-6">
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="showMapScreen()" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div>
+                            <span class="text-xs text-emerald-600 font-bold uppercase tracking-wider">Misi 3</span>
+                            <h2 class="font-game text-xl font-bold text-slate-800">Lab Gawai & Jurus 4P</h2>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">Maksimal +150 XP</span>
+                </div>
+
+                <p class="text-xs md:text-sm text-slate-600 mb-6">
+                    Klik pilihan Anda untuk mencocokkan penerapan aksi nyata gawai dengan Jurus 4P (Dampingi, Pantau, Arahkan, Batasi).
+                </p>
+
+                <div id="l3-container" class="space-y-5"></div>
+
+                <div class="mt-6">
+                    <button onclick="submitLevel(3)" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-game font-bold rounded-xl shadow-md transition-all">
+                        Selesaikan Misi 3
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN: LEVEL 4 -->
+        <section id="screen-level-4" class="hidden space-y-6">
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="showMapScreen()" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div>
+                            <span class="text-xs text-amber-600 font-bold uppercase tracking-wider">Misi 4</span>
+                            <h2 class="font-game text-xl font-bold text-slate-800">Simulator Obrolan Empati</h2>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-semibold">Maksimal +150 XP</span>
+                </div>
+
+                <p class="text-xs md:text-sm text-slate-600 mb-4">
+                    Klik respons pilihan Anda sebagai orang tua yang mendengarkan aktif tanpa langsung menghakimi.
+                </p>
+
+                <div id="l4-container" class="space-y-6 max-w-2xl mx-auto"></div>
+
+                <div class="mt-6">
+                    <button onclick="submitLevel(4)" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-game font-bold rounded-xl shadow-md transition-all">
+                        Selesaikan Misi 4
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN: LEVEL 5 -->
+        <section id="screen-level-5" class="hidden space-y-6">
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="showMapScreen()" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div>
+                            <span class="text-xs text-rose-600 font-bold uppercase tracking-wider">Misi 5</span>
+                            <h2 class="font-game text-xl font-bold text-slate-800">Benteng Cyberbullying & Rutinitas 10 Menit</h2>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-xs font-semibold">Maksimal +150 XP</span>
+                </div>
+
+                <p class="text-xs md:text-sm text-slate-600 mb-6">
+                    Klik opsi tindakan terbaik untuk alur perlindungan anak dari bahaya cyberbullying dan kebiasaan obrolan harian.
+                </p>
+
+                <div id="l5-container" class="space-y-5"></div>
+
+                <div class="mt-6">
+                    <button onclick="submitLevel(5)" class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-game font-bold rounded-xl shadow-md transition-all">
+                        Selesaikan Misi 5 & Klaim Piagam
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCREEN: CERTIFICATE -->
+        <section id="screen-certificate" class="hidden space-y-6">
+            <div class="no-print flex items-center justify-between">
+                <button onclick="showMapScreen()" class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-sm font-semibold transition-colors flex items-center space-x-2">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Kembali ke Peta Game</span>
+                </button>
+                <button onclick="window.print()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-game font-bold rounded-xl transition-all shadow-md flex items-center space-x-2">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Cetak / Simpan PDF (A4 Portrait)</span>
+                </button>
+            </div>
+
+            <!-- Certificate Document -->
+            <div class="cert-card bg-white border-8 border-double border-amber-600 rounded-3xl p-6 md:p-10 text-center relative overflow-hidden shadow-xl text-slate-800 max-w-2xl mx-auto">
+                <!-- Watermark -->
+                <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                    <i class="fa-solid fa-award text-[260px] text-amber-500"></i>
+                </div>
+
+                <!-- Header -->
+                <div class="relative z-10">
+                    <span class="text-xs font-bold tracking-widest text-amber-700 uppercase block mb-1">SD NEGERI DAAN MOGOT 3 TANGERANG</span>
+                    <h1 class="font-game text-2xl md:text-3xl font-bold text-amber-800 mb-1">PIAGAM KOMITMEN KELUARGA</h1>
+                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-6">SAHABAT DIGITAL ERA MODERN</p>
+
+                    <p class="text-xs md:text-sm text-slate-600">Diberikan sebagai bentuk penghargaan dan komitmen kepada:</p>
+                    
+                    <!-- Editable Name Input -->
+                    <div class="my-4 no-print">
+                        <input type="text" id="cert-family-input" oninput="updateCertName(this.value)" placeholder="Ketik Nama Orang Tua / Keluarga..." class="w-full max-w-md text-center text-lg md:text-xl font-bold font-game text-amber-900 border-b-2 border-amber-500 focus:outline-none focus:border-amber-700 bg-transparent py-1">
+                    </div>
+                    <div class="my-4 hidden print:block text-center">
+                        <span id="cert-family-print-name" class="text-xl font-bold font-game text-amber-900 border-b-2 border-amber-800 px-6 py-1 inline-block min-w-[280px]">Bapak / Ibu Wali Murid</span>
+                    </div>
+
+                    <p class="text-xs md:text-sm text-slate-600 leading-relaxed max-w-lg mx-auto">
+                        Telah menyelesaikan seluruh <strong class="text-amber-800">Misi Parenting Sahabat Digital</strong> dengan raihan gelar <span id="cert-title" class="font-bold text-amber-700">Orang Tua Pembelajar</span> (<span id="cert-xp" class="font-bold text-emerald-600">0</span> XP).
+                    </p>
+
+                    <!-- Commitment Points Summary Box -->
+                    <div class="mt-6 mb-8 bg-amber-50/80 border border-amber-200 rounded-2xl p-4 text-left text-xs text-slate-700 space-y-1.5 shadow-inner">
+                        <h4 class="font-game font-bold text-amber-900 text-sm mb-2 text-center uppercase tracking-wide">5 Komitmen Sahabat Digital Anak</h4>
+                        <p><i class="fa-solid fa-check text-amber-600 mr-2"></i>1. Menjadikan gawai sebagai sarana belajar dan rekreasi yang sehat bagi anak.</p>
+                        <p><i class="fa-solid fa-check text-amber-600 mr-2"></i>2. Melakukan obrolan empati setidaknya 10 menit setiap hari tanpa gawai.</p>
+                        <p><i class="fa-solid fa-check text-amber-600 mr-2"></i>3. Menerapkan Jurus 4P (Dampingi, Pantau, Arahkan, Batasi) secara konsisten.</p>
+                        <p><i class="fa-solid fa-check text-amber-600 mr-2"></i>4. Membekali anak alur pertolongan cyberbullying: STOP - SIMPAN - BLOKIR - CERITA.</p>
+                        <p><i class="fa-solid fa-check text-amber-600 mr-2"></i>5. Menjaga sinergi aktif dengan Sekolah dan Guru demi tumbuh kembang anak.</p>
+                    </div>
+
+                    <!-- Signatures Area -->
+                    <div class="flex justify-end items-end pt-2">
+                        <div class="text-center min-w-[220px]">
+                            <p id="cert-date" class="text-xs text-slate-600 mb-1">Tangerang, 3 Oktober 2026</p>
+                            <p class="text-xs font-bold text-slate-800 mb-14">Mengetahui,<br>Kepala Sekolah</p>
+                            <div class="border-b-2 border-slate-800 w-48 mx-auto"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- CUSTOM CONFIRMATION MODAL -->
+    <div id="custom-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 text-center">
+            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mx-auto font-bold">
+                <i class="fa-solid fa-circle-question"></i>
+            </div>
+            <h3 id="modal-title" class="font-game text-xl font-bold text-slate-800">Konfirmasi Jawaban</h3>
+            <p id="modal-body" class="text-xs md:text-sm text-slate-600 leading-relaxed">
+                Apakah Anda sudah yakin dengan jawaban pilihan Anda?
+            </p>
+            <div class="flex items-center space-x-3 pt-2">
+                <button id="modal-cancel-btn" onclick="closeModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-game font-semibold rounded-xl text-xs md:text-sm transition-colors">
+                    Belum Yakin
+                </button>
+                <button id="modal-confirm-btn" class="w-1/2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-game font-bold rounded-xl text-xs md:text-sm shadow-md transition-colors">
+                    Ya, Sudah Yakin
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="no-print border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-500">
+        SD Negeri Daan Mogot 3 &copy; 2026 - Sahabat Digital Quest Parenting
+    </footer>
+
+    <script>
+        let gameState = {
+            xp: 0,
+            levelXP: [0, 0, 0, 0, 0, 0], // XP earned per level
+            completedLevels: [false, false, false, false, false],
+            familyName: ''
+        };
+
+        // Stores selected answers for currently loaded level
+        let selectedAnswers = {};
+        let currentActiveData = [];
+
+        // Fisher-Yates Array Shuffle Utility
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            let newArr = [...array];
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [newArr[currentIndex], newArr[randomIndex]] = [newArr[randomIndex], newArr[currentIndex]];
+            }
+            return newArr;
+        }
+
+        // LEVEL 1 DATA - 5 Questions
+        const level1Data = [
+            {
+                role: "Menciptakan aturan waktu gawai (screen time) yang konsisten di rumah.",
+                options: ["Orang Tua", "Sekolah / Guru", "Anak"],
+                answer: "Orang Tua"
+            },
+            {
+                role: "Memberikan bimbingan literasi digital dan etik berinternet saat pembelajaran.",
+                options: ["Sekolah / Guru", "Orang Tua", "Anak"],
+                answer: "Sekolah / Guru"
+            },
+            {
+                role: "Jujur menceritakan pengalaman tak nyaman atau mencurigakan di internet.",
+                options: ["Anak", "Orang Tua", "Sekolah / Guru"],
+                answer: "Anak"
+            },
+            {
+                role: "Memfasilitasi kegiatan ekstrakurikuler dan ruang diskusi aman mengenai gawai di sekolah.",
+                options: ["Sekolah / Guru", "Orang Tua", "Anak"],
+                answer: "Sekolah / Guru"
+            },
+            {
+                role: "Membatasi penggunaan gawai sendiri saat sedang berinteraksi bersama keluarga di rumah.",
+                options: ["Orang Tua", "Sekolah / Guru", "Anak"],
+                answer: "Orang Tua"
+            }
+        ];
+
+        // LEVEL 2 DATA - 5 Questions
+        const level2Data = [
+            {
+                statement: "Kebutuhan merasa didengar tanpa langsung dihakimi atau dimarahi.",
+                options: ["Kebutuhan Utama Anak", "Perkembangan Karakter"],
+                answer: "Kebutuhan Utama Anak"
+            },
+            {
+                statement: "Mulai membentuk identitas diri dan pengaruh kelompok teman sebaya.",
+                options: ["Perkembangan Karakter", "Kebutuhan Utama Anak"],
+                answer: "Perkembangan Karakter"
+            },
+            {
+                statement: "Rasa aman secara emosional saat mengakui kesalahan penggunaan gawai.",
+                options: ["Kebutuhan Utama Anak", "Perkembangan Karakter"],
+                answer: "Kebutuhan Utama Anak"
+            },
+            {
+                statement: "Dorongan rasa ingin tahu yang tinggi terhadap tren media sosial dan permainan game terkini.",
+                options: ["Perkembangan Karakter", "Kebutuhan Utama Anak"],
+                answer: "Perkembangan Karakter"
+            },
+            {
+                statement: "Apresiasi dan pujian tulus atas kejujuran serta pencapaian positif anak.",
+                options: ["Kebutuhan Utama Anak", "Perkembangan Karakter"],
+                answer: "Kebutuhan Utama Anak"
+            }
+        ];
+
+        // LEVEL 3 DATA - 5 Questions
+        const level3Data = [
+            {
+                label: "Mendampingi anak saat memilih konten video edukasi sesuai usia.",
+                options: ["Dampingi", "Pantau", "Arahkan", "Batasi"],
+                answer: "Dampingi"
+            },
+            {
+                label: "Mengecek aplikasi dan riwayat penggunaan gawai secara berkala.",
+                options: ["Pantau", "Dampingi", "Arahkan", "Batasi"],
+                answer: "Pantau"
+            },
+            {
+                label: "Memberi contoh pemanfaatan internet untuk menyalurkan hobi positif.",
+                options: ["Arahkan", "Dampingi", "Pantau", "Batasi"],
+                answer: "Arahkan"
+            },
+            {
+                label: "Menerapkan zona bebas gawai di meja makan dan kamar tidur.",
+                options: ["Batasi", "Dampingi", "Pantau", "Arahkan"],
+                answer: "Batasi"
+            },
+            {
+                label: "Mengaktifkan fitur Parental Control dan filter konten aman pada perangkat anak.",
+                options: ["Batasi", "Dampingi", "Pantau", "Arahkan"],
+                answer: "Batasi"
+            }
+        ];
+
+        // LEVEL 4 DATA - 5 Questions (Scenarios)
+        const level4Data = [
+            {
+                scenario: "Anak bercerita dengan cemas bahwa nilai tugas sekolahnya kurang bagus akibat terlalu asyik bermain game.",
+                options: [
+                    "Dengarkan dengan tenang: 'Terima kasih sudah jujur ke Ayah/Ibu. Mari kita atur strategi belajar & jadwal game bersama.'",
+                    "Langsung sita ponselnya dan larang bermain game selama satu bulan penuh."
+                ],
+                answer: "Dengarkan dengan tenang: 'Terima kasih sudah jujur ke Ayah/Ibu. Mari kita atur strategi belajar & jadwal game bersama.'"
+            },
+            {
+                scenario: "Anak merasa sedih karena tidak diajak masuk ke dalam grup obrolan kelas oleh beberapa temannya.",
+                options: [
+                    "Rangkul emosi anak: 'Pasti rasanya sedih ya. Mari kita bahas bagaimana menyikapinya dengan bijak.'",
+                    "Menyepelekan: 'Ah begitu saja sedih, tidak usah dipikirkan!'"
+                ],
+                answer: "Rangkul emosi anak: 'Pasti rasanya sedih ya. Mari kita bahas bagaimana menyikapinya dengan bijak.'"
+            },
+            {
+                scenario: "Anak meminta izin ingin membeli item/skin game menggunakan uang saku.",
+                options: [
+                    "Ajak berdiskusi: 'Yuk kita bahas dulu manfaatnya dan buat kesepakatan tabungan sebelum memutuskan.'",
+                    "Memarahi: 'Jangan buang-buang uang untuk hal tidak berguna seperti itu!'"
+                ],
+                answer: "Ajak berdiskusi: 'Yuk kita bahas dulu manfaatnya dan buat kesepakatan tabungan sebelum memutuskan.'"
+            },
+            {
+                scenario: "Anak tidak sengaja mengklik iklan tidak pantas di internet dan merasa takut.",
+                options: [
+                    "Beri rasa aman: 'Terima kasih sudah langsung cerita. Ini bukan salahmu, mari kita pasang penolak iklan bersama.'",
+                    "Menyalahkan: 'Makanya jangan asal klik! Kan sudah dibilang berkali-kali!'"
+                ],
+                answer: "Beri rasa aman: 'Terima kasih sudah langsung cerita. Ini bukan salahmu, mari kita pasang penolak iklan bersama.'"
+            },
+            {
+                scenario: "Anak enggan mematikan gawai saat jam tidur malam tiba.",
+                options: [
+                    "Sampaikan empati & batasan: 'Ayah/Ibu paham gamenya seru, tapi tubuhmu butuh istirahat. Yuk kita simpan untuk esok hari.'",
+                    "Mengancam: 'Matikan sekarang atau gawai ini Ayah/Ibu buang ke tempat sampah!'"
+                ],
+                answer: "Sampaikan empati & batasan: 'Ayah/Ibu paham gamenya seru, tapi tubuhmu butuh istirahat. Yuk kita simpan untuk esok hari.'"
+            }
+        ];
+
+        // LEVEL 5 DATA - 5 Questions
+        const level5Data = [
+            {
+                question: "Langkah pertama jika anak menemui pesan kejam atau perundungan cyberbullying:",
+                options: ["STOP - Jangan merespons atau membalas pesan pelaku.", "Langsung membalas dengan kata-kata kasar."],
+                answer: "STOP - Jangan merespons atau membalas pesan pelaku."
+            },
+            {
+                question: "Langkah penanganan bukti pertolongan pertama digital:",
+                options: ["SIMPAN - Capture/Screenshot bukti pesan untuk dilaporkan ke pihak sekolah/orang tua.", "Hapus semua obrolan dan berpura-pura tidak terjadi apa-apa."],
+                answer: "SIMPAN - Capture/Screenshot bukti pesan untuk dilaporkan ke pihak sekolah/orang tua."
+            },
+            {
+                question: "Langkah pencegahan kontak dari pelaku perundungan:",
+                options: ["BLOKIR - Segera blokir akun atau nomor pelaku agar tidak bisa menghubungi lagi.", "Tetap melayani obrolan pelaku walau merasa tertekan."],
+                answer: "BLOKIR - Segera blokir akun atau nomor pelaku agar tidak bisa menghubungi lagi."
+            },
+            {
+                question: "Langkah penting untuk penyelesaian masalah emosional anak:",
+                options: ["CERITA - Segera sampaikan kepada orang tua, guru, atau pihak berwenang di sekolah.", "Dipendam sendiri karena takut dimarahi orang tua."],
+                answer: "CERITA - Segera sampaikan kepada orang tua, guru, atau pihak berwenang di sekolah."
+            },
+            {
+                question: "Kebiasaan Obrolan Harian 10 Menit tanpa gawai:",
+                options: ["Bertanya dengan ramah: 'Hal menarik atau seru apa yang kamu tonton/mainkan hari ini?'", "Bertanya dengan nada menginterogasi dan penuh kecurigaan."],
+                answer: "Bertanya dengan ramah: 'Hal menarik atau seru apa yang kamu tonton/mainkan hari ini?'"
+            }
+        ];
+
+        window.onload = function() {
+            loadProgress();
+            updateUI();
+            setDynamicDate();
+        };
+
+        function setDynamicDate() {
+            const today = new Date();
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            const dateStr = today.toLocaleDateString('id-ID', options);
+            document.getElementById('cert-date').innerText = `Tangerang, ${dateStr}`;
+        }
+
+        function showMapScreen() {
+            hideAllScreens();
+            document.getElementById('screen-map').classList.remove('hidden');
+        }
+
+        function hideAllScreens() {
+            const screens = ['screen-map', 'screen-level-1', 'screen-level-2', 'screen-level-3', 'screen-level-4', 'screen-level-5', 'screen-certificate'];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+        }
+
+        function startLevel(lvl) {
+            hideAllScreens();
+            selectedAnswers = {}; // Reset selections
+            const screen = document.getElementById(`screen-level-${lvl}`);
+            if (screen) screen.classList.remove('hidden');
+
+            if (lvl === 1) renderLevel1();
+            if (lvl === 2) renderLevel2();
+            if (lvl === 3) renderLevel3();
+            if (lvl === 4) renderLevel4();
+            if (lvl === 5) renderLevel5();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderLevel1() {
+            const container = document.getElementById('l1-container');
+            container.innerHTML = '';
+            currentActiveData = shuffleArray(level1Data);
+
+            currentActiveData.forEach((item, qIdx) => {
+                const optionsShuffled = shuffleArray(item.options);
+                container.innerHTML += `
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                        <p class="font-semibold text-xs md:text-sm text-slate-800">${qIdx + 1}. ${item.role}</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5" id="l1-q-${qIdx}">
+                            ${optionsShuffled.map((opt) => `
+                                <button type="button" 
+                                    onclick="selectCardOption(1, ${qIdx}, '${opt.replace(/'/g, "\\'")}', this)"
+                                    class="option-card flex items-center justify-between p-3 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-medium text-xs text-left hover:border-blue-400 hover:bg-blue-50/50 shadow-sm transition-all">
+                                    <span>${opt}</span>
+                                    <i class="fa-solid fa-circle-check opacity-0 text-base ml-2 transition-opacity"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderLevel2() {
+            const container = document.getElementById('l2-container');
+            container.innerHTML = '';
+            currentActiveData = shuffleArray(level2Data);
+
+            currentActiveData.forEach((item, qIdx) => {
+                const optionsShuffled = shuffleArray(item.options);
+                container.innerHTML += `
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                        <p class="font-semibold text-xs md:text-sm text-slate-800">${qIdx + 1}. ${item.statement}</p>
+                        <div class="space-y-2.5" id="l2-q-${qIdx}">
+                            ${optionsShuffled.map((opt) => `
+                                <button type="button" 
+                                    onclick="selectCardOption(2, ${qIdx}, '${opt.replace(/'/g, "\\'")}', this)"
+                                    class="option-card w-full flex items-center justify-between p-3 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-medium text-xs text-left hover:border-indigo-400 hover:bg-indigo-50/50 shadow-sm transition-all">
+                                    <span>${opt}</span>
+                                    <i class="fa-solid fa-circle-check opacity-0 text-base ml-2 transition-opacity"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderLevel3() {
+            const container = document.getElementById('l3-container');
+            container.innerHTML = '';
+            currentActiveData = shuffleArray(level3Data);
+
+            currentActiveData.forEach((item, qIdx) => {
+                const optionsShuffled = shuffleArray(item.options);
+                container.innerHTML += `
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                        <p class="font-semibold text-xs md:text-sm text-slate-800">${qIdx + 1}. ${item.label}</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="l3-q-${qIdx}">
+                            ${optionsShuffled.map((opt) => `
+                                <button type="button" 
+                                    onclick="selectCardOption(3, ${qIdx}, '${opt.replace(/'/g, "\\'")}', this)"
+                                    class="option-card flex items-center justify-between p-3 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-medium text-xs text-left hover:border-emerald-400 hover:bg-emerald-50/50 shadow-sm transition-all">
+                                    <span>${opt}</span>
+                                    <i class="fa-solid fa-circle-check opacity-0 text-base ml-1 transition-opacity"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderLevel4() {
+            const container = document.getElementById('l4-container');
+            container.innerHTML = '';
+            currentActiveData = shuffleArray(level4Data);
+
+            currentActiveData.forEach((item, qIdx) => {
+                const optionsShuffled = shuffleArray(item.options);
+                container.innerHTML += `
+                    <div class="p-4 bg-white border border-slate-200 rounded-2xl space-y-3 shadow-sm">
+                        <p class="font-semibold text-xs md:text-sm text-slate-800"><i class="fa-solid fa-comment-dots text-amber-500 mr-2"></i>Skenario ${qIdx + 1}: ${item.scenario}</p>
+                        <div class="space-y-2.5" id="l4-q-${qIdx}">
+                            ${optionsShuffled.map((opt) => `
+                                <button type="button" 
+                                    onclick="selectCardOption(4, ${qIdx}, '${opt.replace(/'/g, "\\'")}', this)"
+                                    class="option-card w-full flex items-start justify-between p-3.5 bg-slate-50 border-2 border-slate-200 text-slate-700 rounded-xl font-medium text-xs text-left leading-relaxed hover:border-amber-400 hover:bg-amber-50/50 shadow-sm transition-all">
+                                    <span class="pr-2">${opt}</span>
+                                    <i class="fa-solid fa-circle-check opacity-0 text-base mt-0.5 transition-opacity"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderLevel5() {
+            const container = document.getElementById('l5-container');
+            container.innerHTML = '';
+            currentActiveData = shuffleArray(level5Data);
+
+            currentActiveData.forEach((item, qIdx) => {
+                const optionsShuffled = shuffleArray(item.options);
+                container.innerHTML += `
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                        <p class="font-semibold text-xs md:text-sm text-slate-800">${qIdx + 1}. ${item.question}</p>
+                        <div class="space-y-2.5" id="l5-q-${qIdx}">
+                            ${optionsShuffled.map((opt) => `
+                                <button type="button" 
+                                    onclick="selectCardOption(5, ${qIdx}, '${opt.replace(/'/g, "\\'")}', this)"
+                                    class="option-card w-full flex items-center justify-between p-3 bg-white border-2 border-slate-200 text-slate-700 rounded-xl font-medium text-xs text-left hover:border-rose-400 hover:bg-rose-50/50 shadow-sm transition-all">
+                                    <span>${opt}</span>
+                                    <i class="fa-solid fa-circle-check opacity-0 text-base ml-2 transition-opacity"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function selectCardOption(lvl, qIdx, optValue, clickedBtn) {
+            selectedAnswers[qIdx] = optValue;
+
+            const parent = document.getElementById(`l${lvl}-q-${qIdx}`);
+            if (!parent) return;
+
+            const buttons = parent.querySelectorAll('.option-card');
+            
+            const themeClasses = {
+                1: ['bg-blue-600', 'border-blue-600', 'text-white', 'shadow-md', 'ring-2', 'ring-blue-300'],
+                2: ['bg-indigo-600', 'border-indigo-600', 'text-white', 'shadow-md', 'ring-2', 'ring-indigo-300'],
+                3: ['bg-emerald-600', 'border-emerald-600', 'text-white', 'shadow-md', 'ring-2', 'ring-emerald-300'],
+                4: ['bg-amber-500', 'border-amber-500', 'text-white', 'shadow-md', 'ring-2', 'ring-amber-200'],
+                5: ['bg-rose-600', 'border-rose-600', 'text-white', 'shadow-md', 'ring-2', 'ring-rose-300']
+            };
+
+            const defaultClasses = ['bg-white', 'bg-slate-50', 'border-slate-200', 'text-slate-700'];
+
+            buttons.forEach(btn => {
+                const icon = btn.querySelector('.fa-circle-check');
+                if (btn === clickedBtn) {
+                    btn.classList.remove(...defaultClasses);
+                    btn.classList.add(...themeClasses[lvl]);
+                    if (icon) {
+                        icon.classList.remove('opacity-0');
+                        icon.classList.add('opacity-100');
+                    }
+                } else {
+                    btn.classList.remove(...themeClasses[1], ...themeClasses[2], ...themeClasses[3], ...themeClasses[4], ...themeClasses[5]);
+                    btn.classList.add('bg-white', 'border-slate-200', 'text-slate-700');
+                    if (icon) {
+                        icon.classList.remove('opacity-100');
+                        icon.classList.add('opacity-0');
+                    }
+                }
+            });
+        }
+
+        function submitLevel(lvl) {
+            openModal(
+                "Konfirmasi Jawaban",
+                `Apakah Anda sudah yakin dengan jawaban yang Anda pilih untuk Misi ${lvl}?`,
+                function() {
+                    completeLevel(lvl);
+                },
+                "Belum Yakin",
+                "Ya, Sudah Yakin"
+            );
+        }
+
+        function completeLevel(lvl) {
+            const xpPerQuestion = [0, 20, 20, 30, 30, 30];
+
+            let correctCount = 0;
+            currentActiveData.forEach((item, qIdx) => {
+                if (selectedAnswers[qIdx] && selectedAnswers[qIdx] === item.answer) {
+                    correctCount++;
+                }
+            });
+
+            const earnedXP = correctCount * xpPerQuestion[lvl];
+            
+            if (!gameState.levelXP) gameState.levelXP = [0, 0, 0, 0, 0, 0];
+            if (earnedXP > gameState.levelXP[lvl]) {
+                gameState.levelXP[lvl] = earnedXP;
+            }
+
+            gameState.completedLevels[lvl - 1] = true;
+            gameState.xp = gameState.levelXP.reduce((sum, val) => sum + (val || 0), 0);
+
+            saveProgress();
+            updateUI();
+            triggerConfetti();
+
+            // Directly proceed to next level or certificate screen without "periksa lagi" modal
+            if (lvl < 5) {
+                startLevel(lvl + 1);
+            } else {
+                showCertificateScreen();
+            }
+        }
+
+        function showCertificateScreen() {
+            const allCompleted = gameState.completedLevels && gameState.completedLevels.every(status => status === true);
+            
+            if (!allCompleted) {
+                const firstIncomplete = gameState.completedLevels.findIndex(status => !status) + 1;
+                openModal(
+                    "Piagam Masih Terkunci 🔒",
+                    `Piagam Komitmen Keluarga baru dapat dibuka setelah Anda menyelesaikan seluruh Misi 1 sampai Misi 5. Selesaikan Misi ${firstIncomplete} terlebih dahulu.`,
+                    function() {
+                        startLevel(firstIncomplete);
+                    },
+                    "Tutup",
+                    `Kerjakan Misi ${firstIncomplete}`
+                );
+                return;
+            }
+
+            hideAllScreens();
+            document.getElementById('screen-certificate').classList.remove('hidden');
+            triggerConfetti();
+        }
+
+        function updateCertName(val) {
+            gameState.familyName = val;
+            const printSpan = document.getElementById('cert-family-print-name');
+            if (printSpan) {
+                printSpan.innerText = val.trim() !== '' ? val : 'Bapak / Ibu Wali Murid';
+            }
+            saveProgress();
+        }
+
+        function updateUI() {
+            const xpEl = document.getElementById('player-xp');
+            if (xpEl) xpEl.innerText = gameState.xp;
+
+            const certXp = document.getElementById('cert-xp');
+            if (certXp) certXp.innerText = gameState.xp;
+
+            for (let i = 1; i <= 5; i++) {
+                const badge = document.getElementById(`badge-level-${i}`);
+                if (badge) {
+                    if (gameState.completedLevels[i - 1]) {
+                        badge.innerText = 'Selesai ✓';
+                        badge.className = 'px-3 py-1 bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-full text-xs font-bold';
+                    } else {
+                        badge.innerText = 'Belum Selesai';
+                        badge.className = 'px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-semibold';
+                    }
+                }
+            }
+
+            const certBadge = document.getElementById('badge-certificate');
+            const certBtn = document.getElementById('btn-certificate');
+            const allCompleted = gameState.completedLevels && gameState.completedLevels.every(status => status === true);
+
+            if (certBadge) {
+                if (allCompleted) {
+                    certBadge.innerText = 'Siap Diklaim ✨';
+                    certBadge.className = 'px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold';
+                } else {
+                    certBadge.innerText = 'Terkunci 🔒';
+                    certBadge.className = 'px-3 py-1 bg-amber-200/80 text-amber-900 rounded-full text-xs font-semibold';
+                }
+            }
+
+            if (certBtn) {
+                if (allCompleted) {
+                    certBtn.className = 'w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-game font-bold rounded-xl transition-all shadow-sm flex items-center justify-center space-x-2';
+                } else {
+                    certBtn.className = 'w-full py-2.5 bg-slate-300 hover:bg-slate-400 text-slate-700 font-game font-bold rounded-xl transition-all shadow-sm flex items-center justify-center space-x-2';
+                }
+            }
+
+            const certInput = document.getElementById('cert-family-input');
+            if (certInput && gameState.familyName) {
+                certInput.value = gameState.familyName;
+                updateCertName(gameState.familyName);
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('sdn_dm3_quest_state', JSON.stringify(gameState));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('sdn_dm3_quest_state');
+            if (saved) {
+                try {
+                    gameState = JSON.parse(saved);
+                    if (!gameState.levelXP) gameState.levelXP = [0, 0, 0, 0, 0, 0];
+                } catch(e) {}
+            }
+        }
+
+        function confirmResetProgress() {
+            openModal(
+                "Reset Progress",
+                "Apakah Anda yakin ingin mengulang seluruh progress game dari awal?",
+                function() {
+                    gameState = { xp: 0, levelXP: [0, 0, 0, 0, 0, 0], completedLevels: [false, false, false, false, false], familyName: '' };
+                    saveProgress();
+                    updateUI();
+                    showMapScreen();
+                },
+                "Batal",
+                "Ya, Reset Game"
+            );
+        }
+
+        function openModal(title, text, onConfirm, cancelText = "Belum Yakin", confirmText = "Ya, Sudah Yakin") {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = text;
+            
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+            if (cancelBtn) cancelBtn.innerText = cancelText;
+
+            const confirmBtn = document.getElementById('modal-confirm-btn');
+            if (confirmBtn) {
+                confirmBtn.innerText = confirmText;
+                confirmBtn.onclick = function() {
+                    closeModal();
+                    if (onConfirm) onConfirm();
+                };
+            }
+
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 70,
+                    spread: 60,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
